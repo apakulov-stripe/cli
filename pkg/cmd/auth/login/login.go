@@ -228,9 +228,9 @@ func loginRun(opts *LoginOptions) error {
 		}
 	} else {
 		fmt.Fprintln(opts.IO.ErrOut)
-		fmt.Fprintln(opts.IO.ErrOut, heredoc.Doc(`
-				Tip: you can generate a Personal Access Token here https://github.com/settings/tokens
-				The minimum required scopes are 'repo' and 'read:org'.`))
+		fmt.Fprintln(opts.IO.ErrOut, heredoc.Doc(fmt.Sprintf(`
+				Tip: you can generate a Personal Access Token here https://%s/settings/tokens
+				The minimum required scopes are 'repo' and 'read:org'.`, hostname)))
 		var token string
 		err := prompt.SurveyAskOne(&survey.Password{
 			Message: "Paste your authentication token:",

@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
+	"os"
 	"reflect"
 	"testing"
 
@@ -41,6 +44,22 @@ func TestGraphQL(t *testing.T) {
 	reqBody, _ := ioutil.ReadAll(req.Body)
 	eq(t, string(reqBody), `{"query":"QUERY","variables":{"name":"Mona"}}`)
 	eq(t, req.Header.Get("Authorization"), "token OTOKEN")
+}
+
+func TestGraphQLWithUnixSocket(t *testing.T) {
+	socket := "/tmp/gh-cli-test.sock"
+	storedGHUnixSocketENv := os.Getenv("GH_UNIX_SOCKET")
+	os.Setenv("GH_UNIX_SOCKET", socket)
+	defer os.Setenv("GH_UNIX_SOCKET", storedGHUnixSocketENv)
+
+	unixListener, err := net.Listen("unix", socket)
+	if err != nil {
+		log.Fatal("Unable to listen on unix-socket: ", err)
+	}
+	go http.Serve(unixListener, http.NewServeMux())
+	defer unixListener.Close()
+
+	TestGraphQL(t)
 }
 
 func TestGraphQLError(t *testing.T) {

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 
@@ -72,7 +71,7 @@ func authFlow(oauthHost string, w io.Writer, notice string, additionalScopes []s
 			fmt.Fprintln(w, oauthSuccessPage)
 		},
 		VerboseStream: verboseStream,
-		HTTPClient:    http.DefaultClient,
+		HTTPClient:    api.NewHTTPClient(),
 		OpenInBrowser: func(url, code string) error {
 			if code != "" {
 				fmt.Fprintf(w, "%s First copy your one-time code: %s\n", utils.Yellow("!"), utils.Bold(code))

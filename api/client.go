@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 
@@ -22,11 +24,23 @@ type ClientOption = func(http.RoundTripper) http.RoundTripper
 
 // NewHTTPClient initializes an http.Client
 func NewHTTPClient(opts ...ClientOption) *http.Client {
-	tr := http.DefaultTransport
-	for _, opt := range opts {
-		tr = opt(tr)
+	var transport http.RoundTripper
+	if unixSocket := os.Getenv("GH_UNIX_SOCKET"); unixSocket != "" {
+		dialFunc := func(network, addr string) (net.Conn, error) {
+			return net.Dial("unix", unixSocket)
+		}
+		transport = &http.Transport{
+			Dial:    dialFunc,
+			DialTLS: dialFunc,
+		}
+	} else {
+		transport = http.DefaultTransport
 	}
-	return &http.Client{Transport: tr}
+
+	for _, opt := range opts {
+		transport = opt(transport)
+	}
+	return &http.Client{Transport: transport}
 }
 
 // NewClient initializes a Client
